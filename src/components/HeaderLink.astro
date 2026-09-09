@@ -1,12 +1,21 @@
 ---
 import type { HTMLAttributes } from 'astro/types';
+import { withBase } from '../utils/urls';
 
 type Props = HTMLAttributes<'a'>;
 
 const { href, class: className, ...props } = Astro.props;
-const pathname = Astro.url.pathname.replace(import.meta.env.BASE_URL, '');
-const subpath = pathname.match(/[^\/]+/g);
-const isActive = href === pathname || href === '/' + (subpath?.[0] || '');
+
+const stripTrailingSlash = (path: string) =>
+	path.length > 1 && path.endsWith('/') ? path.slice(0, -1) : path;
+
+const currentPath = stripTrailingSlash(Astro.url.pathname);
+const linkPath = stripTrailingSlash(href?.toString() ?? '');
+const homePath = stripTrailingSlash(withBase('/'));
+
+const isActive =
+	currentPath === linkPath ||
+	(linkPath !== homePath && currentPath.startsWith(`${linkPath}/`));
 ---
 
 <a href={href} class:list={[className, { active: isActive }]} {...props}>
